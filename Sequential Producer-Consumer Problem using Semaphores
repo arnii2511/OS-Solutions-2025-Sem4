@@ -1,0 +1,112 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int value;
+} semaphore;
+
+void down(semaphore *S)
+{
+    S->value--;
+    if (S->value < 0)
+    {
+        printf("Process blocked\n");
+        while (S->value < 0);
+    }
+}
+
+void up(semaphore *S)
+{
+    S->value++;
+    if (S->value <= 0)
+    {
+        printf("Process unblocked\n");
+    }
+}
+
+int buffer_size;
+int *buffer;
+int in = 0, out = 0, x = 0;
+semaphore S = {1};
+semaphore empty;
+semaphore full = {0};
+
+void producer()
+{
+    --S.value;
+    ++full.value;
+    --empty.value;
+    x++;
+    buffer[in] = x;
+    printf("\nProducer produces item %d", x);
+    in = (in + 1) % buffer_size;
+    ++S.value;
+
+    // Print status
+    printf("\nS = %d, in = %d, out = %d, full = %d, empty = %d\n", S.value, in, out, full.value, empty.value);
+}
+
+void consumer()
+{
+    --S.value;
+    --full.value;
+    ++empty.value;
+    printf("\nConsumer consumes item %d", buffer[out]);
+    out = (out + 1) % buffer_size;
+    --x;
+    ++S.value;
+
+    // Print status
+    printf("\nS = %d, in = %d, out = %d, full = %d, empty = %d\n", S.value, in, out, full.value, empty.value);
+}
+
+int main()
+{
+    int choice;
+    printf("Enter buffer size: ");
+    scanf("%d", &buffer_size);
+   
+    buffer = (int *)malloc(buffer_size * sizeof(int));
+    if (buffer == NULL) {
+        printf("Memory allocation failed!\n");
+        return 1;
+    }
+   
+    empty.value = buffer_size;
+   
+    while (1)
+    {
+        printf("\n1. Press 1 for Producer\n2. Press 2 for Consumer\n3. Press 3 for Exit\nEnter your choice: ");
+        scanf("%d", &choice);
+       
+        switch (choice)
+        {
+            case 1:
+                if ((S.value == 1) && (empty.value != 0))
+                {
+                    producer();
+                }
+                else
+                {
+                    printf("Buffer is full!");
+                }
+                break;
+           
+            case 2:
+                if ((S.value == 1) && (full.value != 0))
+                {
+                    consumer();
+                }
+                else
+                {
+                    printf("Buffer is empty!");
+                }
+                break;
+           
+            case 3:
+                free(buffer);
+                exit(0);
+        }
+    }
+    return 0;
+}
