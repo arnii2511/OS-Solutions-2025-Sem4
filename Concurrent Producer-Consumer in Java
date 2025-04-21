@@ -1,0 +1,68 @@
+import java.util.Scanner;
+
+class ProdCons {
+    static int[] buf;
+    static int in = 0, out = 0, x = 0;
+    static int sz;
+    static int full = 0, emp;
+    static final Object lock = new Object();
+
+    static class Producer extends Thread {
+        public void run() {
+            synchronized (lock) {
+                if (emp == 0) {
+                    System.out.println("Buffer is full!");
+                    return;
+                }
+                x++;
+                buf[in] = x;
+                System.out.println("Producer makes item " + x);
+                in = (in + 1) % sz;
+                full++;
+                emp--;
+                System.out.println("in = " + in + ", out = " + out + ", full = " + full + ", empty = " + emp);
+            }
+        }
+    }
+
+    static class Consumer extends Thread {
+        public void run() {
+            synchronized (lock) {
+                if (full == 0) {
+                    System.out.println("Buffer is empty!");
+                    return;
+                }
+                System.out.println("Consumer takes item " + buf[out]);
+                out = (out + 1) % sz;
+                x--;
+                full--;
+                emp++;
+                System.out.println("in = " + in + ", out = " + out + ", full = " + full + ", empty = " + emp);
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter buffer size: ");
+        sz = sc.nextInt();
+        buf = new int[sz];
+        emp = sz;
+
+        while (true) {
+            System.out.println("\n1. Producer\n2. Consumer\n3. Exit");
+            System.out.print("Enter choice: ");
+            int ch = sc.nextInt();
+            if (ch == 1) {
+                new Producer().start();
+            } else if (ch == 2) {
+                new Consumer().start();
+            } else if (ch == 3) {
+                break;
+            } else {
+                System.out.println("Invalid!");
+            }
+        }
+        sc.close();
+    }
+}
