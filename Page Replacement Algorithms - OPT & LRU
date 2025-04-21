@@ -1,0 +1,136 @@
+#include <stdio.h>
+#include <limits.h>
+
+// Optimal
+int findOptimalPage(int temp[], int frameno, int pageref[], int currentIndex,
+    int pageno) 
+{
+    int farthest = currentIndex;
+    int replacePage = -1;
+    for (int i = 0; i < frameno; i++) {
+    int j, found = 0;
+    for (j = currentIndex + 1; j < pageno; j++) 
+    {
+        if (temp[i] == pageref[j]) 
+        {
+            found = 1;
+            if (j > farthest) {
+                farthest = j;
+                replacePage = i;
+            }
+            break;
+        }
+    }
+    if (!found) {
+        return i;
+    }
+    }
+    return replacePage;
+}
+// LRU
+int findLRUPage(int timestamps[], int frameno) {
+    int minTime = INT_MAX, lruPage = -1;
+    for (int i = 0; i < frameno; i++) {
+        if (timestamps[i] < minTime) {
+            minTime = timestamps[i];
+            lruPage = i;
+        }
+    }
+    return lruPage;
+}
+
+int main() 
+{
+int frameno, pageno;
+    printf("\nEnter Number of Page Frames: ");
+    scanf("%d", &frameno);
+    printf("\nEnter Number of Pages: ");
+    scanf("%d", &pageno);
+    char temp[frameno];
+    char pageref[pageno];
+    int timestamps[frameno];
+    int frequency[frameno];
+    printf("\nEnter page reference string (one character at a time): ");
+    for (int p = 0; p < pageno; p++) {
+        scanf(" %c", &pageref[p]);
+    }
+    while (1) { 
+        int choice, pHits = 0, pFaults = 0;
+        float hit_ratio, miss_ratio;
+        for (int i = 0; i < frameno; i++) {
+        temp[i] = '-';
+        timestamps[i] = 0;
+        frequency[i] = 0;
+    }
+    printf("\nSelect Page Replacement Algorithm:\n");
+    printf("1. Optimal\n");
+    printf("2. LRU\n");
+    printf("3. Exit\n");
+    printf("Enter your choice: ");
+    scanf("%d", &choice);
+    if (choice == 3) {
+        printf("Exiting the program...\n");
+        break; 
+    }
+    if (choice < 1 || choice > 3) {
+        printf("Invalid Choice! Please try again.\n");
+        continue; 
+    }
+
+    printf("\nPage Reference: ");
+        for (int p = 0; p < pageno; p++) {
+        printf("%c ", pageref[p]);
+    }
+    printf("\n");
+    printf("\nPage Frames:\n");
+    for (int p = 0; p < pageno; p++) {
+        int pageFound = 0;
+
+    for (int i = 0; i < frameno; i++) {
+        if (pageref[p] == temp[i]) {
+            pHits++;
+            pageFound = 1;
+            timestamps[i] = p; // Update access time for LRU
+            frequency[i]++; // Increase frequency for LFU
+            break;
+        }
+    }
+    // If the page is not in the frame, handle replacement
+    if (!pageFound) {
+        pFaults++;
+        int replacePage = -1;
+        if (pFaults <= frameno) {
+        replacePage = pFaults - 1;
+    } else {
+        switch (choice) {
+            case 1: // Optimal
+            replacePage = findOptimalPage(temp, frameno, pageref, p, pageno);
+            break;
+            case 2: // LRU
+            replacePage = findLRUPage(timestamps, frameno);
+            break;
+        }
+    }
+    temp[replacePage] = pageref[p];
+    timestamps[replacePage] = p; 
+    }
+    
+    printf("%c: ", pageref[p]);
+    for (int i = 0; i < frameno; i++) {
+        if (temp[i] != '-') {
+            printf("%c ", temp[i]);
+    } else {
+        printf("- ");
+    }
+    }
+    printf(pageFound ? "Hit\n" : "Fault\n");
+    }
+    hit_ratio = (float)pHits / pageno;
+    miss_ratio = (float)pFaults / pageno;
+    printf("\nTotal Page Faults: %d", pFaults);
+    printf("\nTotal Page Hits: %d", pHits);
+    printf("\nHit Ratio: %.2f", hit_ratio);
+    printf("\nMiss Ratio: %.2f\n", miss_ratio);
+    }
+    return 0;
+}
