@@ -1,0 +1,128 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define M 10
+
+void show(int p[], int a[], int n, int b[], int m) {
+    printf("\nProc\tSize\tBlock\n");
+    for (int i = 0; i < n; i++) {
+        printf("%d\t%d\t", i + 1, p[i]);
+        if (a[i] != -1)
+            printf("%d\n", a[i] + 1);
+        else
+            printf("No fit\n");
+    }
+
+    printf("\nLeft Blocks:\n");
+    for (int j = 0; j < m; j++) {
+        if (b[j] > 0)
+            printf("%d: %d\n", j + 1, b[j]);
+    }
+}
+
+void first(int b[], int m, int p[], int n) {
+    int a[M];
+    for (int i = 0; i < n; i++) a[i] = -1;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (b[j] >= p[i]) {
+                a[i] = j;
+                b[j] -= p[i];
+                break;
+            }
+        }
+    }
+
+    printf("\nFirst Fit:\n");
+    show(p, a, n, b, m);
+}
+
+void best(int b[], int m, int p[], int n) {
+    int a[M];
+    for (int i = 0; i < n; i++) a[i] = -1;
+
+    for (int i = 0; i < n; i++) {
+        int idx = -1;
+        for (int j = 0; j < m; j++) {
+            if (b[j] >= p[i]) {
+                if (idx == -1 || b[j] < b[idx])
+                    idx = j;
+            }
+        }
+        if (idx != -1) {
+            a[i] = idx;
+            b[idx] -= p[i];
+        }
+    }
+
+    printf("\nBest Fit:\n");
+    show(p, a, n, b, m);
+}
+
+void worst(int b[], int m, int p[], int n) {
+    int a[M];
+    for (int i = 0; i < n; i++) a[i] = -1;
+
+    for (int i = 0; i < n; i++) {
+        int idx = -1;
+        for (int j = 0; j < m; j++) {
+            if (b[j] >= p[i]) {
+                if (idx == -1 || b[j] > b[idx])
+                    idx = j;
+            }
+        }
+        if (idx != -1) {
+            a[i] = idx;
+            b[idx] -= p[i];
+        }
+    }
+
+    printf("\nWorst Fit:\n");
+    show(p, a, n, b, m);
+}
+
+int main() {
+    int m, n;
+    int b[M], p[M];
+
+    printf("Blocks: ");
+    scanf("%d", &m);
+    for (int i = 0; i < m; i++) {
+        printf("B%d: ", i + 1);
+        scanf("%d", &b[i]);
+    }
+
+    printf("Procs: ");
+    scanf("%d", &n);
+    for (int i = 0; i < n; i++) {
+        printf("P%d: ", i + 1);
+        scanf("%d", &p[i]);
+    }
+
+    int b1[M], b2[M], b3[M];
+    for (int i = 0; i < m; i++) {
+        b1[i] = b2[i] = b3[i] = b[i];
+    }
+
+    while (1) {
+        int c;
+        printf("\n1.First  2.Best  3.Worst  4.Exit\n");
+        printf("Pick: ");
+        scanf("%d", &c);
+
+        if (c == 1)
+            first(b1, m, p, n);
+        else if (c == 2)
+            best(b2, m, p, n);
+        else if (c == 3)
+            worst(b3, m, p, n);
+        else if (c == 4) {
+            printf("Bye!\n");
+            break;
+        } else
+            printf("Invalid!\n");
+    }
+
+    return 0;
+}
