@@ -1,0 +1,163 @@
+#include <stdio.h>
+#include <limits.h>
+// Function to find the page to replace in Optimal
+int findOptimalPage(char temp[], int frameno, char pageref[], int currentIndex,
+int pageno) {
+int farthest = currentIndex;
+int replacePage = -1;
+for (int i = 0; i < frameno; i++) {
+int j, found = 0;
+for (j = currentIndex + 1; j < pageno; j++) {
+if (temp[i] == pageref[j]) {
+found = 1;
+if (j > farthest) {
+farthest = j;
+replacePage = i;
+}
+break;
+}
+}
+if (!found) {
+return i;
+}
+}
+return replacePage;
+}
+// Function to find the page to replace in LRU
+int findLRUPage(int timestamps[], int frameno) {
+int minTime = INT_MAX, lruPage = -1;
+for (int i = 0; i < frameno; i++) {
+if (timestamps[i] < minTime) {
+minTime = timestamps[i];
+lruPage = i;
+}
+}
+return lruPage;
+}
+// Function to find the page to replace in LFU
+int findLFUPage(int frequency[], int timestamps[], int frameno) {
+int minFreq = INT_MAX, lfuPage = -1;
+for (int i = 0; i < frameno; i++) {
+if (frequency[i] < minFreq) {
+minFreq = frequency[i];
+lfuPage = i;
+}
+else if (frequency[i] == minFreq && timestamps[i] < timestamps[lfuPage])
+{
+lfuPage = i;
+}
+}
+return lfuPage;
+}
+int main() {
+int frameno, pageno;
+printf("\nEnter Number of Page Frames: ");
+scanf("%d", &frameno);
+printf("\nEnter Number of Pages: ");
+scanf("%d", &pageno);
+char temp[frameno];
+char pageref[pageno];
+int timestamps[frameno];
+int frequency[frameno];
+printf("\nEnter page reference string (one character at a time): ");
+for (int p = 0; p < pageno; p++) {
+scanf(" %c", &pageref[p]);
+}
+while (1) { // Infinite loop until user decides to exit
+int choice, pHits = 0, pFaults = 0;
+float hit_ratio, miss_ratio;
+int fifoIndex = 0; // Tracks the FIFO replacement index
+for (int i = 0; i < frameno; i++) {
+temp[i] = '-';
+timestamps[i] = 0;
+frequency[i] = 0;
+}
+printf("\nSelect Page Replacement Algorithm:\n");
+printf("1. Optimal\n");
+printf("2. FIFO\n");
+printf("3. LRU\n");
+printf("4. LFU\n");
+printf("5. Exit\n");
+printf("Enter your choice: ");
+scanf("%d", &choice);
+if (choice == 5) {
+printf("Exiting the program...\n");
+break; // Exit the loop and program
+}
+if (choice < 1 || choice > 5) {
+printf("Invalid Choice! Please try again.\n");
+continue; // Prompt user again
+}
+// Print Page Reference horizontally
+printf("\nPage Reference: ");
+for (int p = 0; p < pageno; p++) {
+printf("%c ", pageref[p]);
+}
+printf("\n");
+printf("\nPage Frames:\n");
+for (int p = 0; p < pageno; p++) {
+int pageFound = 0;
+// Check if the page is already in the frame
+for (int i = 0; i < frameno; i++) {
+if (pageref[p] == temp[i]) {
+pHits++;
+pageFound = 1;
+timestamps[i] = p; // Update access time for LRU
+frequency[i]++; // Increase frequency for LFU
+break;
+}
+}
+// If the page is not in the frame, handle replacement
+if (!pageFound) {
+pFaults++;
+int replacePage = -1;
+if (pFaults <= frameno) {
+replacePage = pFaults - 1; // Fill empty frames first
+} else {
+switch (choice) {
+case 1: // Optimal
+replacePage = findOptimalPage(temp, frameno, pageref,
+p, pageno);
+break;
+case 2: // FIFO
+replacePage = fifoIndex;
+fifoIndex = (fifoIndex + 1) % frameno; // Update FIFO
+index
+break;
+case 3: // LRU
+replacePage = findLRUPage(timestamps, frameno);
+break;
+case 4: // LFU
+replacePage = findLFUPage(frequency, timestamps,
+frameno);
+break;
+default:
+printf("Invalid Choice! Please try again.\n");
+continue;
+}
+}
+temp[replacePage] = pageref[p];
+timestamps[replacePage] = p; // Update access time
+frequency[replacePage] = 1; // Reset frequency count for LFU
+}
+// Print the current page frame state vertically
+printf("%c: ", pageref[p]);
+for (int i = 0; i < frameno; i++) {
+if (temp[i] != '-') {
+printf("%c ", temp[i]);
+} else {
+printf("- ");
+}
+}
+printf(pageFound ? "Hit\n" : "Fault\n");
+}
+// Calculate hit and miss ratios
+hit_ratio = (float)pHits / pageno;
+miss_ratio = (float)pFaults / pageno;
+printf("\nTotal Page Faults: %d", pFaults);
+printf("\nTotal Page Hits: %d", pHits);
+printf("\nHit Ratio: %.2f", hit_ratio);
+printf("\nMiss Ratio: %.2f\n", miss_ratio);
+}
+return 0;
+}
