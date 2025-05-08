@@ -1,0 +1,86 @@
+#include <stdio.h>
+int process[100], arrival[100], burst[100], remaining[100], priority[100];
+int completion[100], turnaround[100], waiting[100];
+int n;
+
+int main() {
+    int i, current_time = 0, total_completed = 0;
+    float sum_wt = 0, sum_tat = 0, sum_ct = 0;
+    
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+    
+    // Initialize process IDs
+    for (i = 0; i < n; i++) {
+        process[i] = i;
+    }
+    
+    printf("Enter arrival time: \n");
+    for (i = 0; i < n; i++) {
+        scanf("%d", &arrival[i]);
+    }
+    
+    printf("Enter burst time: \n");
+    for (i = 0; i < n; i++) {
+        scanf("%d", &burst[i]);
+        remaining[i] = burst[i];
+    }
+    
+    printf("Enter priority (lower number means higher priority): \n");
+    for (i = 0; i < n; i++) {
+        scanf("%d", &priority[i]);
+    }
+    
+    printf("\nGantt Chart:\n");
+    while (total_completed < n) {
+        int highest_priority_index = -1;
+        int highest_priority = 999999;  // Initialize to a very high value
+        
+        // Find process with highest priority (lowest number)
+        for (i = 0; i < n; i++) {
+            if (arrival[i] <= current_time && remaining[i] > 0) {
+                if (priority[i] < highest_priority) {
+                    highest_priority = priority[i];
+                    highest_priority_index = i;
+                }
+            }
+        }
+        
+        if (highest_priority_index == -1) {
+            // No process available, idle time
+            printf("| Idle (%d-%d) ", current_time, current_time + 1);
+            current_time++;
+        } else {
+            // Execute process for 1 time unit
+            remaining[highest_priority_index]--;
+            printf("| P%d (%d-%d) ", highest_priority_index, current_time, current_time + 1);
+            
+            // If process completes
+            if (remaining[highest_priority_index] == 0) {
+                total_completed++;
+                completion[highest_priority_index] = current_time + 1;
+                turnaround[highest_priority_index] = completion[highest_priority_index] - arrival[highest_priority_index];
+                waiting[highest_priority_index] = turnaround[highest_priority_index] - burst[highest_priority_index];
+            }
+            current_time++;
+        }
+    }
+    
+    printf("|\n\n");
+    printf("Process\tArrival\tBurst\tPriority\tCompletion\tTurnaround\tWaiting\n");
+    for (i = 0; i < n; i++) {
+        printf("P%d\t%d\t%d\t%d\t\t%d\t\t%d\t\t%d\n", 
+               i, arrival[i], burst[i], priority[i], 
+               completion[i], turnaround[i], waiting[i]);
+        
+        sum_wt += waiting[i];
+        sum_tat += turnaround[i];
+        sum_ct += completion[i];
+    }
+    
+    printf("\nAverage Waiting Time: %.2f\n", sum_wt / n);
+    printf("Average Turnaround Time: %.2f\n", sum_tat / n);
+    printf("Average Completion Time: %.2f\n", sum_ct / n);
+    
+    return 0;
+}
